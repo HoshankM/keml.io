@@ -44,11 +44,15 @@ public class GraphEdge {
 					return InformationLinkType.STRONG_SUPPORT; 
 			}
 			case "cross": {
-				if (isDashed(e))
+				 if (isDashed(e))
 					return InformationLinkType.ATTACK;
 				else
 					return InformationLinkType.STRONG_ATTACK;
 			}
+			case "concave":
+					return InformationLinkType.IMPLICATION;
+			case "dash":
+				return InformationLinkType.IMPLICATION_NEGATION;
 			case "standard": case "none": return null;
 			default: {
 				System.err.println(targetShape);
