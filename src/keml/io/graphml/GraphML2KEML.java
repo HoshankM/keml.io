@@ -34,7 +34,7 @@ import keml.PreKnowledge;
 import keml.ReceiveMessage;
 import keml.SendMessage;
 import keml.Junction;
-import keml.JunctionType;
+
 
 
 import org.w3c.dom.*;
@@ -380,10 +380,11 @@ public class GraphML2KEML {
 					throw new IllegalArgumentException("implication with negation used from info " + e.getSource() + " to junction " + e.getTarget());
 				
 				Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
+				
 				Junction target = junctionNodes.get(e.getTarget());
 				Literal sourceLiteral = literals.get(source);
 				target.getContent().add(sourceLiteral);
-				
+				sourceLiteral.getUsedbyJunctions().add(target);
 				
 			} else  { // direct implication between two infos
 				Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
@@ -398,7 +399,6 @@ public class GraphML2KEML {
 					target.getAsLiteral().add(targetLiteral);
 				} else 
 					targetLiteral = literals.get(target);
-				System.out.println(sourceLiteral.getSource());
 				targetLiteral.getPremises().add((Literal) sourceLiteral);
 				
 			}
