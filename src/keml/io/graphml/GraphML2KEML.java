@@ -80,8 +80,7 @@ public class GraphML2KEML {
 		HashMap<String, PositionalInformation> informationIsNoInstructionPositions = new HashMap<String, PositionalInformation>();
 		
 		HashMap<String, Junction> junctionNodes = new HashMap<String,Junction>(); // for disjunction/conjunction coupling nodes
-		HashMap<Information, Literal> literals = new HashMap<Information, Literal>();
-		
+
 		HashMap<String, String> ignoreNodes = new HashMap<String, String>();
 		
 		
@@ -144,10 +143,11 @@ public class GraphML2KEML {
 									author.getPreknowledge().add(pre);
 									
 									Literal l = factory.createLiteral();
+									Literal negatedL = factory.createLiteral();
 									l.setSource(pre);
-									pre.getAsLiteral().add(l);
-									
-									literals.put(pre, l);
+									negatedL.setSource(pre);
+									negatedL.setNegated(true);
+
 								}
 								// else it might be an interrupt:
 								else if (childNode.getAttributes().item(0).getNodeValue().equals("com.yworks.bpmn.Gateway.withShadow")) {
@@ -172,10 +172,11 @@ public class GraphML2KEML {
 										informationPositions.put(id, pos);	
 										
 										Literal l = factory.createLiteral();
+										Literal negatedL = factory.createLiteral();
 										l.setSource(info);
-										info.getAsLiteral().add(l);
+										negatedL.setSource(info);
+										negatedL.setNegated(true);
 										
-										literals.put(info, l);
 										
 										break;
 									}
@@ -207,7 +208,7 @@ public class GraphML2KEML {
 										else if (label.toLowerCase().equals("or"))
 											jun.setIsDisjunction(true);
 										else 
-											throw new IllegalArgumentException("Unrecognized label for Junction Node " + id);
+											throw new IllegalArgumentException("Unrecognized/unsupported type for Junction Node " + id);
 										
 										junctionNodes.put(id, jun);
 										break;
@@ -256,7 +257,8 @@ public class GraphML2KEML {
 				System.err.println("No type for target node " + e.getTarget());
 			
 			if (e.getInformationLinkType() == InformationLinkType.IMPLICATION 
-					|| e.getInformationLinkType() == InformationLinkType.IMPLICATION_NEGATION) {
+					|| e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION
+					|| e.getInformationLinkType() == InformationLinkType.SNEGATED_IMPLICATION) {
 				implicationConnection.add(e);
 				return; //skip to next edge 
 			}
@@ -344,7 +346,7 @@ public class GraphML2KEML {
 			SendMessage msg = (SendMessage) kemlNodes.get(e.getTarget());
 			info.getIsUsedOn().add(msg);
 		});
-		
+
 		
 		// ***************** Logic Connections **********************
 		implicationConnection.forEach(e -> {
@@ -352,8 +354,8 @@ public class GraphML2KEML {
 			
 			// implication from junction to junction
 			if (junctionNodes.containsKey(e.getSource()) && junctionNodes.containsKey(e.getTarget())) {
-				if (e.getInformationLinkType() == InformationLinkType.IMPLICATION_NEGATION)
-					throw new IllegalArgumentException("implication with negation used between the 2 junctions " + e.getSource() + " and " + e.getTarget());
+				if (e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION)
+					throw new IllegalArgumentException("implication on negated target used between the 2 junctions " + e.getSource() + " and " + e.getTarget());
 				
 				Junction source = junctionNodes.get(e.getSource());
 				Junction target = junctionNodes.get(e.getTarget());
@@ -365,40 +367,48 @@ public class GraphML2KEML {
 				Information target = getInformationFromKeml(e.getTarget(), informationNodeForwardMap, kemlNodes);
 				Literal targetLiteral;
 				
-				if (e.getInformationLinkType() == InformationLinkType.IMPLICATION_NEGATION) {
-					targetLiteral = factory.createLiteral();
-					targetLiteral.setIsNegated(true);
-					targetLiteral.setSource(target);
-					target.getAsLiteral().add(targetLiteral);
+				if (e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION) {
+					targetLiteral = target.getAsLiteral().getLast();	
 				} else 
-					targetLiteral = literals.get(target);
+					targetLiteral = target.getAsLiteral().getFirst();
 				
 				targetLiteral.getPremises().add(source);
 
-			} else if (junctionNodes.containsKey(e.getTarget())) { // implication from info to junction
-				if (e.getInformationLinkType() == InformationLinkType.IMPLICATION_NEGATION)
+			// implication from info to junction
+			} else if (junctionNodes.containsKey(e.getTarget())) { 
+				if (e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION)
 					throw new IllegalArgumentException("implication with negation used from info " + e.getSource() + " to junction " + e.getTarget());
 				
-				Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
 				
+				Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
 				Junction target = junctionNodes.get(e.getTarget());
-				Literal sourceLiteral = literals.get(source);
+				Literal sourceLiteral;
+				if (e.getInformationLinkType() == InformationLinkType.SNEGATED_IMPLICATION)
+					sourceLiteral = source.getAsLiteral().getLast();
+				else
+					sourceLiteral = source.getAsLiteral().getFirst();
+				
 				target.getContent().add(sourceLiteral);
-				sourceLiteral.getUsedbyJunctions().add(target);
+				sourceLiteral.getUsedInJunctions().add(target);
+
+				
 				
 			} else  { // direct implication between two infos
 				Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
 				Information target = getInformationFromKeml(e.getTarget(), informationNodeForwardMap, kemlNodes);
-				Literal sourceLiteral = literals.get(source);
+				Literal sourceLiteral;
 				Literal targetLiteral;
 				
-				if (e.getInformationLinkType() == InformationLinkType.IMPLICATION_NEGATION) {
-					targetLiteral = factory.createLiteral();
-					targetLiteral.setIsNegated(true);
-					targetLiteral.setSource(target);
-					target.getAsLiteral().add(targetLiteral);
+				if (e.getInformationLinkType() == InformationLinkType.SNEGATED_IMPLICATION)
+					sourceLiteral = source.getAsLiteral().getLast();
+				else
+					sourceLiteral = source.getAsLiteral().getFirst();
+				
+				if (e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION) {
+					targetLiteral = target.getAsLiteral().getLast();
 				} else 
-					targetLiteral = literals.get(target);
+					targetLiteral = target.getAsLiteral().getFirst();
+				
 				targetLiteral.getPremises().add((Literal) sourceLiteral);
 				
 			}

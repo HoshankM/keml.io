@@ -35,6 +35,7 @@ public class GraphEdge {
 	
 	private static InformationLinkType determineInformationLinkType(Element e) {
 		String targetShape = arrowHead(e);
+		
 		switch (targetShape) {
 			case "white_circle": case "transparent_circle": case "circle": return InformationLinkType.SUPPLEMENT;
 			case "crows_foot_many": {
@@ -49,10 +50,14 @@ public class GraphEdge {
 				else
 					return InformationLinkType.STRONG_ATTACK;
 			}
-			case "concave":
+			case "concave": {
+				if (arrowTail(e).equals("dash"))
+					return InformationLinkType.SNEGATED_IMPLICATION; // S for source (i.e., source is being negated)
+				else 
 					return InformationLinkType.IMPLICATION;
+			}
 			case "dash":
-				return InformationLinkType.IMPLICATION_NEGATION;
+				return InformationLinkType.TNEGATED_IMPLICATION; // T for target (i.e., target is being negated)
 			case "standard": case "none": return null;
 			default: {
 				System.err.println(targetShape);
@@ -69,6 +74,11 @@ public class GraphEdge {
 	private static String arrowHead(Element e) {	
 		NamedNodeMap style = e.getElementsByTagName("y:Arrows").item(0).getAttributes();
 		return style.getNamedItem("target").getNodeValue();
+	}
+	
+	private static String arrowTail(Element e) {	
+		NamedNodeMap style = e.getElementsByTagName("y:Arrows").item(0).getAttributes();
+		return style.getNamedItem("source").getNodeValue();
 	}
 	
 	public String getId() {
