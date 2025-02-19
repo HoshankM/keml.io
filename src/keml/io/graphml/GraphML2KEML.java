@@ -359,7 +359,10 @@ public class GraphML2KEML {
 				
 				Junction source = junctionNodes.get(e.getSource());
 				Junction target = junctionNodes.get(e.getTarget());
-				target.getContent().add(source);
+				if (source.isIsDisjunction() == target.isIsDisjunction())
+					target.getContent().addAll(source.getContent());
+				else
+					target.getContent().add(source);
 				
 			// implication from junction to info
 			} else if (junctionNodes.containsKey(e.getSource())) { 
@@ -419,7 +422,6 @@ public class GraphML2KEML {
 		
 		// ***************** Information Connections **********************
 		informationConnection.forEach(e -> {
-			System.out.println(e.getId());
 			Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
 			Information target = getInformationFromKeml(e.getTarget(), informationNodeForwardMap, kemlNodes);
 			InformationLink i = factory.createInformationLink();
