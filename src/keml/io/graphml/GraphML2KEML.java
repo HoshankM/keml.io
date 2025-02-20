@@ -256,6 +256,7 @@ public class GraphML2KEML {
 			if (targetType == null)
 				System.err.println("No type for target node " + e.getTarget());
 			
+			// detect LAF related links
 			if (e.getInformationLinkType() == InformationLinkType.IMPLICATION 
 					|| e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION
 					|| e.getInformationLinkType() == InformationLinkType.SNEGATED_IMPLICATION) {
@@ -350,7 +351,11 @@ public class GraphML2KEML {
 		
 		// ***************** Logic Connections **********************
 		implicationConnection.forEach(e -> {
-			// TODO we do not "store" the link itself and don't know whether it should be done.. yet.
+			/* TODO/NOTE
+			 *  we do not "store" the link itself (like information connections)
+			 *  because we don't have a way yet to properly make InformationLink objects
+			 *  accept Junction objects as their source or target
+			*/
 			
 			// implication from junction to junction
 			if (junctionNodes.containsKey(e.getSource()) && junctionNodes.containsKey(e.getTarget())) {
@@ -359,7 +364,7 @@ public class GraphML2KEML {
 				
 				Junction source = junctionNodes.get(e.getSource());
 				Junction target = junctionNodes.get(e.getTarget());
-				if (source.isIsDisjunction() == target.isIsDisjunction())
+				if (source.isIsDisjunction() == target.isIsDisjunction()) // if both same type then just merge content into target
 					target.getContent().addAll(source.getContent());
 				else
 					target.getContent().add(source);
@@ -400,6 +405,7 @@ public class GraphML2KEML {
 				Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
 				Information target = getInformationFromKeml(e.getTarget(), informationNodeForwardMap, kemlNodes);
 				
+				// Current analysis component doesn't handle direct cycles, therefore through exception if detected
 				for (GraphEdge ge : implicationConnection) {
 					if (ge.getSource().equals(e.getTarget()) && ge.getTarget().equals(e.getSource())
 							&& ge.getInformationLinkType().equals(e.getInformationLinkType()))

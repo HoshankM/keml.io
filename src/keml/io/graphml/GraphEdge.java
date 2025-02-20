@@ -50,13 +50,13 @@ public class GraphEdge {
 				else
 					return InformationLinkType.STRONG_ATTACK;
 			}
-			case "concave": {
-				if (arrowTail(e).equals("dash"))
+			case "concave": { // --->|
+				if (arrowTail(e).equals("dash")) // -|----
 					return InformationLinkType.SNEGATED_IMPLICATION; // S for source (i.e., source is being negated)
 				else 
-					return InformationLinkType.IMPLICATION;
+					return InformationLinkType.IMPLICATION; // nothing is being negated
 			}
-			case "dash":
+			case "dash": // ----|-
 				return InformationLinkType.TNEGATED_IMPLICATION; // T for target (i.e., target is being negated)
 			case "standard": case "none": return null;
 			default: {
@@ -76,6 +76,11 @@ public class GraphEdge {
 		return style.getNamedItem("target").getNodeValue();
 	}
 	
+	/**
+	 * Method to fetch the type of arrow used on the edge's tail
+	 * @param e Edge element
+	 * @return type of arrow tail as String
+	 */
 	private static String arrowTail(Element e) {	
 		NamedNodeMap style = e.getElementsByTagName("y:Arrows").item(0).getAttributes();
 		return style.getNamedItem("source").getNodeValue();
