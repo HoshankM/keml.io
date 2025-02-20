@@ -399,6 +399,13 @@ public class GraphML2KEML {
 			} else  { // direct implication between two infos
 				Information source = getInformationFromKeml(e.getSource(), informationNodeForwardMap, kemlNodes);
 				Information target = getInformationFromKeml(e.getTarget(), informationNodeForwardMap, kemlNodes);
+				
+				for (GraphEdge ge : implicationConnection) {
+					if (ge.getSource().equals(e.getTarget()) && ge.getTarget().equals(e.getSource())
+							&& ge.getInformationLinkType().equals(e.getInformationLinkType()))
+						throw new IllegalArgumentException("cyclical " + e.getInformationLinkType() + " link between " + e.getSource() + " and " + e.getTarget());
+				}
+				
 				Literal sourceLiteral;
 				Literal targetLiteral;
 				
