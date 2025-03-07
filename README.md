@@ -1,6 +1,6 @@
 # KEML I/O
 
-**Note:** This branch features an alternative [KEML](https://github.com/keml-group/) component that leverages logic-based argumentation framework (**LAF**), and is designed *only* to be used along other LAF components of KEML. For the corresponding baseline version of this component, see the baseline [bipolar weighted framework](https://github.com/keml-group/keml.io) version.
+**Note:** This branch features an alternative [KEML](https://github.com/keml-group/) component that leverages a logic-based argumentation framework (**LAF**), and is currently *only* tested for use in conjunction with other LAF components of KEML. For the corresponding base version of this component, see the [base IO](https://github.com/keml-group/keml.io) repository.
 -----------------------
 
 This project offers basic functionality for KEML file I/O as well as some more advanced routines on those files and auxiliaries:

@@ -204,9 +204,9 @@ public class GraphML2KEML {
 										String label = GraphMLUtils.readLabel(childNode);
 										
 										if (label.toLowerCase().equals("and"))
-											jun.setIsDisjunction(false);
+											jun.setDisjunction(false);
 										else if (label.toLowerCase().equals("or"))
-											jun.setIsDisjunction(true);
+											jun.setDisjunction(true);
 										else 
 											throw new IllegalArgumentException("Unrecognized/unsupported type for Junction Node " + id);
 										
@@ -364,7 +364,7 @@ public class GraphML2KEML {
 				
 				Junction source = junctionNodes.get(e.getSource());
 				Junction target = junctionNodes.get(e.getTarget());
-				if (source.isIsDisjunction() == target.isIsDisjunction()) // if both same type then just merge content into target
+				if (source.isDisjunction() == target.isDisjunction()) // if both same type then just merge content into target
 					target.getContent().addAll(source.getContent());
 				else
 					target.getContent().add(source);
@@ -376,9 +376,9 @@ public class GraphML2KEML {
 				Literal targetLiteral;
 				
 				if (e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION) {
-					targetLiteral = target.getAsLiteral().getLast();	
+					targetLiteral = target.getAsLiterals().getLast();	
 				} else 
-					targetLiteral = target.getAsLiteral().getFirst();
+					targetLiteral = target.getAsLiterals().getFirst();
 				
 				targetLiteral.getPremises().add(source);
 
@@ -392,9 +392,9 @@ public class GraphML2KEML {
 				Junction target = junctionNodes.get(e.getTarget());
 				Literal sourceLiteral;
 				if (e.getInformationLinkType() == InformationLinkType.SNEGATED_IMPLICATION)
-					sourceLiteral = source.getAsLiteral().getLast();
+					sourceLiteral = source.getAsLiterals().getLast();
 				else
-					sourceLiteral = source.getAsLiteral().getFirst();
+					sourceLiteral = source.getAsLiterals().getFirst();
 				
 				target.getContent().add(sourceLiteral);
 				sourceLiteral.getUsedInJunctions().add(target);
@@ -416,14 +416,14 @@ public class GraphML2KEML {
 				Literal targetLiteral;
 				
 				if (e.getInformationLinkType() == InformationLinkType.SNEGATED_IMPLICATION)
-					sourceLiteral = source.getAsLiteral().getLast();
+					sourceLiteral = source.getAsLiterals().getLast();
 				else
-					sourceLiteral = source.getAsLiteral().getFirst();
+					sourceLiteral = source.getAsLiterals().getFirst();
 				
 				if (e.getInformationLinkType() == InformationLinkType.TNEGATED_IMPLICATION) {
-					targetLiteral = target.getAsLiteral().getLast();
+					targetLiteral = target.getAsLiterals().getLast();
 				} else 
-					targetLiteral = target.getAsLiteral().getFirst();
+					targetLiteral = target.getAsLiterals().getFirst();
 				
 				targetLiteral.getPremises().add((Literal) sourceLiteral);
 				
